@@ -1,6 +1,7 @@
 import logging
 import os
 import tempfile
+import datetime
 from logging.handlers import RotatingFileHandler
 from kafka import KafkaConsumer
 from hdfs import InsecureClient
@@ -25,13 +26,31 @@ class CoinConsumer:
             enable_auto_commit=False)
         self.hdfs_client = InsecureClient('http://localhost:9870', user='root')
 
-    def flush_to_hdfs(tmp_file_name):
-        pass
+    def flush_to_hdfs(self, tmp_file_name):
+        try:
+            current_time = datetime.datetime.now()
+            hdfs_filename = "/coinTradeData/" +\
+                str(current_time.year) + "/" +\
+                str(current_time.month) + "/" +\
+                str(current_time.day) + "/"\
+                f"coinTradeData.{int(round(current_time.timestamp()))}"
+
+            self.logger.info(
+                f"Starting flush file {tmp_file_name} to hdfs")
+            flush_status = self.hdfs_client.upload(hdfs_filename, tmp_file_name)
+            if flush_status:
+                self.logger.info(f"Flush file {tmp_file_name} to hdfs as {hdfs_filename} successfully")
+            else:
+                raise RuntimeError(f"Failed to flush file {tmp_file_name} to hdfs")
+            self.consumer.commit()
+        except Exception as e:
+            self.logger.error(
+                f"An error happened while flush file to hdfs: {e}")
 
     def run(self):
         try:
-            # tmp_file = tempfile.TemporaryFile()
-            # tmp_file.write('Symbol,Price,Quantity,Trade time\n')
+            tmp_file = tempfile.TemporaryFile(mode='w+t')
+            tmp_file.write('Symbol,Price,Quantity,Trade time\n')
             self.logger.info("Subcribe to topic coinTradeData")
             while True:
                 msgs_pack = self.consumer.poll(10.0)
@@ -40,26 +59,16 @@ class CoinConsumer:
 
                 for tp, messages in msgs_pack.items():
                     for message in messages:
-                        print(message)
-                    # tmp_file.write(f"{msg['value']}\n")
+                        tmp_file.write(f"{message['value']}\n")
 
                 # File size > 100mb flush to hdfs
-                # if tmp_file.tell() > 104857600:
-                #     fluh_to_hdfs(tmp_file.name)
-                #     tmp_file.close()
-                #     tmp_file = tempfile.TemporaryFile()
-                #     self.consumer.commit()
-
-            # new_path = self.hdfs_client.upload('/', '/home/hiamking/Projects/DE/Project_II/CoinHub/kafka/coin_consumer/app.py')
-            # print(new_path)
-            # content = self.hdfs_client.list('/')
-            # print(content)
+                if tmp_file.tell() > 104857600:
+                    self.flush_to_hdfs(tmp_file.name)
+                    tmp_file.close()
+                    tmp_file = tempfile.TemporaryFile()
         except Exception as e:
             self.logger.error(
                 f"An error happened while consuming messages from kafka: {e}")
         finally:
+            tmp_file.close()
             self.consumer.close()
-
-
-abc = CoinConsumer()
-abc.run()

@@ -14,6 +14,9 @@ services:
     volumes:
       - ../storage/data/zookeeper-1/data:/var/lib/zookeeper/data
       - ../storage/data/zookeeper-1/log:/var/lib/zookeeper/log
+    networks:
+      coinhub_net:
+        ipv4_address: 172.20.0.2
 
   zookeeper-2:
     image: confluentinc/cp-zookeeper:latest
@@ -29,6 +32,9 @@ services:
     volumes:
       - ../storage/data/zookeeper-2/data:/var/lib/zookeeper/data
       - ../storage/data/zookeeper-2/log:/var/lib/zookeeper/log
+    networks:
+      coinhub_net:
+        ipv4_address: 172.20.0.3
 
   zookeeper-3:
     image: confluentinc/cp-zookeeper:latest
@@ -44,6 +50,9 @@ services:
     volumes:
       - ../storage/data/zookeeper-3/data:/var/lib/zookeeper/data
       - ../storage/data/zookeeper-3/log:/var/lib/zookeeper/log
+    networks:
+      coinhub_net:
+        ipv4_address: 172.20.0.4
 
   kafka-1:
     image: confluentinc/cp-kafka:latest
@@ -67,6 +76,9 @@ services:
       - KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR=3
     volumes:
       - ../storage/data/kafka-1:/var/lib/kafka/data
+    networks:
+      coinhub_net:
+        ipv4_address: 172.20.0.5
 
   kafka-2:
     image: confluentinc/cp-kafka:latest
@@ -90,6 +102,9 @@ services:
       - KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR=3
     volumes:
       - ../storage/data/kafka-2:/var/lib/kafka/data
+    networks:
+      coinhub_net:
+        ipv4_address: 172.20.0.6
 
   kafka-3:
     image: confluentinc/cp-kafka:latest
@@ -113,6 +128,9 @@ services:
       - KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR=3
     volumes:
       - ../storage/data/kafka-3:/var/lib/kafka/data
+    networks:
+      coinhub_net:
+        ipv4_address: 172.20.0.7
 
   namenode:
     image: bde2020/hadoop-namenode:2.0.0-hadoop3.2.1-java8
@@ -131,11 +149,16 @@ services:
         condition: on-failure
     volumes:
       - ../storage/hadoop/namenode:/hadoop/dfs/name
-  
+    networks:
+      coinhub_net:
+        ipv4_address: 172.20.0.8
+
   datanode-1:
     image: bde2020/hadoop-datanode:2.0.0-hadoop3.2.1-java8
     container_name: datanode-1
     hostname: datanode-1
+    ports:
+      - 19864:9864
     environment:
       - SERVICE_PRECONDITION=namenode:9870
     env_file:
@@ -146,11 +169,16 @@ services:
         condition: on-failure
     volumes:
     - ../storage/hadoop/datanode-1:/hadoop/dfs/data
+    networks:
+      coinhub_net:
+        ipv4_address: 172.20.0.9
 
   datanode-2:
     image: bde2020/hadoop-datanode:2.0.0-hadoop3.2.1-java8
     container_name: datanode-2
     hostname: datanode-2
+    ports:
+      - 29864:9864
     environment:
       - SERVICE_PRECONDITION=namenode:9870
     env_file:
@@ -161,11 +189,16 @@ services:
         condition: on-failure
     volumes:
     - ../storage/hadoop/datanode-2:/hadoop/dfs/data
+    networks:
+      coinhub_net:
+        ipv4_address: 172.20.0.10
 
   datanode-3:
     image: bde2020/hadoop-datanode:2.0.0-hadoop3.2.1-java8
     container_name: datanode-3
     hostname: datanode-3
+    ports:
+      - 39864:9864
     environment:
       - SERVICE_PRECONDITION=namenode:9870
     env_file:
@@ -175,7 +208,10 @@ services:
       restart_policy:
         condition: on-failure
     volumes:
-    - ../storage/hadoop/datanode-3:/hadoop/dfs/data
+      - ../storage/hadoop/datanode-3:/hadoop/dfs/data
+    networks:
+      coinhub_net:
+        ipv4_address: 172.20.0.11
 
   resourcemanager:
     image: bde2020/hadoop-resourcemanager:2.0.0-hadoop3.2.1-java8
@@ -197,6 +233,9 @@ services:
           - node.hostname == akswnc4.aksw.uni-leipzig.de
     healthcheck:
       disable: true
+    networks:
+      coinhub_net:
+        ipv4_address: 172.20.0.12
 
   nodemanager:
     image: bde2020/hadoop-nodemanager:2.0.0-hadoop3.2.1-java8
@@ -212,6 +251,9 @@ services:
       mode: global
       restart_policy:
         condition: on-failure
+    networks:
+      coinhub_net:
+        ipv4_address: 172.20.0.13
 
   historyserver:
     image: bde2020/hadoop-historyserver:2.0.0-hadoop3.2.1-java8
@@ -229,3 +271,19 @@ services:
           - node.hostname == akswnc4.aksw.uni-leipzig.de
     volumes:
       - ../storage/hadoop/hadoop_historyserver:/hadoop/yarn/timeline
+    networks:
+      coinhub_net:
+        ipv4_address: 172.20.0.14
+
+networks:
+  coinhub_net:
+    name: coinhub_net
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.20.0.0/16
+    labels:
+      - "com.docker.compose.network=coinhub_net"
+      - "com.docker.compose.project=coinhub"
+      - "com.docker.compose.version=2.6.0"

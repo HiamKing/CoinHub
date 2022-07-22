@@ -3,6 +3,7 @@ import os
 import tempfile
 from logging.handlers import RotatingFileHandler
 from kafka import KafkaConsumer
+from hdfs import InsecureClient
 
 
 class CoinConsumer:
@@ -22,6 +23,7 @@ class CoinConsumer:
             group_id='tradeDataConsummers',
             auto_offset_reset='earliest',
             enable_auto_commit=False)
+        self.hdfs_client = InsecureClient('http://localhost:9870', user='root')
 
     def flush_to_hdfs(tmp_file_name):
         pass
@@ -47,6 +49,11 @@ class CoinConsumer:
                 #     tmp_file.close()
                 #     tmp_file = tempfile.TemporaryFile()
                 #     self.consumer.commit()
+
+            # new_path = self.hdfs_client.upload('/', '/home/hiamking/Projects/DE/Project_II/CoinHub/kafka/coin_consumer/app.py')
+            # print(new_path)
+            # content = self.hdfs_client.list('/')
+            # print(content)
         except Exception as e:
             self.logger.error(
                 f"An error happened while consuming messages from kafka: {e}")

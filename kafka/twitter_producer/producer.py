@@ -2,14 +2,14 @@ import logging
 from logging.handlers import RotatingFileHandler
 from kafka import KafkaProducer
 from kafka.errors import KafkaError
-from binance.websocket.spot.websocket_client import SpotWebsocketClient as WebsocketClient
+from tweepy import Stream
 import os
 
 
-class CoinProducer:
+class TwitterProducer:
     def __init__(self):
         log_handler = RotatingFileHandler(
-            f"{os.path.abspath(os.getcwd())}/kafka/coin_producer/logs/producer.log",
+            f"{os.path.abspath(os.getcwd())}/kafka/twitter_producer/logs/producer.log",
             maxBytes=104857600, backupCount=10)
         logging.basicConfig(
             format='%(asctime)s,%(msecs)d <%(name)s>[%(levelname)s]: %(message)s',
@@ -21,7 +21,7 @@ class CoinProducer:
         self.producer = KafkaProducer(
             bootstrap_servers=['localhost:19092', 'localhost:29092', 'localhost:39092'],
             client_id='coin_producer')
-        self.ws_client = WebsocketClient()
+        self.twitter_client = Stream("", "", "", "")
 
     def message_handler(self, message):
         #  Message from binnance sapi
@@ -39,15 +39,18 @@ class CoinProducer:
         try:
             with open(os.path.abspath(os.getcwd()) + "/kafka/coin_producer/coin_list.csv") as f:
                 coin_list = f.read().split('\n')
-            coin_list = coin_list[:5]
-            self.logger.info("Start running coin producer...")
-            self.ws_client.start()
-            for idx, coin in enumerate(coin_list):
-                self.ws_client.trade(coin, idx + 1, self.message_handler)
-            # self.ws_client.trade('btcusdt', 1, self.message_handler)
-            while True:
-                pass
+            twitter_filter = '$' + ',$'.join(coin_list)
+            # print(twitter_filter)
+            result = self.twitter_client.filter()
+            print(result)
+            # self.logger.info("Start running coin producer...")
+            # self.ws_client.start()
+            # for idx, coin in enumerate(coin_list):
+            #     self.ws_client.trade(coin, idx + 1, self.message_handler)
+            # # self.ws_client.trade('btcusdt', 1, self.message_handler)
+            # while True:
+            #     pass
         except Exception as e:
             self.logger.error(f"An error happened while streaming: {e}")
         finally:
-            self.ws_client.stop()
+            self.twitter_client.disconnect()

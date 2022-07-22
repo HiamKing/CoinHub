@@ -4,6 +4,6 @@ __pycache__
 settings.json
 .flake8
 .vscode
-*.log*
+logs
 secret
 plan

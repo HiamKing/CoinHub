@@ -9,7 +9,7 @@ class CoinConsumer:
     def __init__(self):
         log_handler = RotatingFileHandler(
             f"{os.path.abspath(os.getcwd())}/kafka/coin_consumer/logs/consumer.log",
-            maxBytes=100000, backupCount=10)
+            maxBytes=104857600, backupCount=10)
         logging.basicConfig(
             format='%(asctime)s,%(msecs)d <%(name)s>[%(levelname)s]: %(message)s',
             datefmt='%H:%M:%S',

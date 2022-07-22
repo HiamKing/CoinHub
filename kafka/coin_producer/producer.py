@@ -9,7 +9,7 @@ import os
 class CoinProducer:
     def __init__(self):
         log_handler = RotatingFileHandler(
-            f"{os.path.abspath(os.getcwd())}/kafka/coin_producer/producer.log",
+            f"{os.path.abspath(os.getcwd())}/kafka/coin_producer/logs/producer.log",
             maxBytes=100000, backupCount=10)
         logging.basicConfig(
             format='%(asctime)s,%(msecs)d <%(name)s>[%(levelname)s]: %(message)s',

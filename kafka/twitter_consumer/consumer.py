@@ -7,32 +7,32 @@ from kafka import KafkaConsumer
 from hdfs import InsecureClient
 
 
-class CoinConsumer:
+class TwitterConsumer:
     def __init__(self):
         log_handler = RotatingFileHandler(
-            f"{os.path.abspath(os.getcwd())}/kafka/coin_consumer/logs/consumer.log",
+            f"{os.path.abspath(os.getcwd())}/kafka/twitter_consumer/logs/consumer.log",
             maxBytes=104857600, backupCount=10)
         logging.basicConfig(
             format='%(asctime)s,%(msecs)d <%(name)s>[%(levelname)s]: %(message)s',
             datefmt='%H:%M:%S',
             level=logging.DEBUG,
             handlers=[log_handler])
-        self.logger = logging.getLogger('coin_consumer')
+        self.logger = logging.getLogger('twitter_consumer')
         self.consumer = KafkaConsumer(
-            'coinTradeData',
+            'twitterData',
             bootstrap_servers=['localhost:19092', 'localhost:29092', 'localhost:39092'],
-            group_id='tradeDataConsummers',
+            group_id='twitterConsummers',
             auto_offset_reset='earliest',
             enable_auto_commit=False)
         self.hdfs_client = InsecureClient('http://localhost:9870', user='root')
 
     def flush_to_hdfs(self, tmp_file_name):
         current_time = datetime.datetime.now()
-        hdfs_filename = "/coinTradeData/" +\
+        hdfs_filename = "/twitterData/" +\
             str(current_time.year) + "/" +\
             str(current_time.month) + "/" +\
             str(current_time.day) + "/"\
-            f"coinTradeData.{int(round(current_time.timestamp()))}"
+            f"twitterData.{int(round(current_time.timestamp()))}"
 
         self.logger.info(
             f"Starting flush file {tmp_file_name} to hdfs")
@@ -45,13 +45,13 @@ class CoinConsumer:
 
     def recreate_tmpfile(self):
         tmp_file = tempfile.TemporaryFile(mode='w+t')
-        tmp_file.write('Symbol,Price,Quantity,Trade time\n')
+        tmp_file.write('Symbol,Tweet\n')
         return tmp_file
 
     def run(self):
         try:
             tmp_file = self.recreate_tmpfile()
-            self.logger.info("Subcribe to topic coinTradeData")
+            self.logger.info("Subcribe to topic twitterData")
             while True:
                 msgs_pack = self.consumer.poll(10.0)
                 if msgs_pack is None:

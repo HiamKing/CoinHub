@@ -2,12 +2,25 @@ import logging
 from logging.handlers import RotatingFileHandler
 from kafka import KafkaProducer
 from kafka.errors import KafkaError
-from tweepy import Stream
+from tweepy import StreamingClient
 import os
 
+with open(os.path.abspath(os.getcwd()) + "/kafka/coin_producer/coin_list.csv") as f:
+    symbol_list = f.read().split('\n')
 
-class TwitterProducer:
-    def __init__(self):
+# This only need to do once
+# twitter_filter = [
+#     StreamRule('#' + ' OR #'.join(symbol_list[:33]), 'coins 1-33'),
+#     StreamRule('#' + ' OR #'.join(symbol_list[33:67]), 'coins 34-67'),
+#     StreamRule('#' + ' OR #'.join(symbol_list[67:100]), 'coins 68-100'),
+#     StreamRule('#btcusdt', 'abc')
+# ]
+# self.add_rules(twitter_filter)
+
+
+class TwitterProducer(StreamingClient):
+    def __init__(self, bearer_token, return_type=dict, **kwargs):
+        super().__init__(bearer_token=bearer_token, return_type=return_type)
         log_handler = RotatingFileHandler(
             f"{os.path.abspath(os.getcwd())}/kafka/twitter_producer/logs/producer.log",
             maxBytes=104857600, backupCount=10)
@@ -16,19 +29,25 @@ class TwitterProducer:
             datefmt='%H:%M:%S',
             level=logging.DEBUG,
             handlers=[log_handler])
-        self.logger = logging.getLogger('coin_producer')
-
+        self.logger = logging.getLogger('twitter_producer')
         self.producer = KafkaProducer(
             bootstrap_servers=['localhost:19092', 'localhost:29092', 'localhost:39092'],
-            client_id='coin_producer')
-        self.twitter_client = Stream("", "", "", "")
+            client_id='twitter_producer')
 
-    def message_handler(self, message):
-        #  Message from binnance sapi
+    def on_response(self, response):
+        #  Message from twitter sapi
         try:
-            if(len(message.keys()) == 11):
-                trade_info = f"{message['s']},{message['p']},{message['q']},{message['T']}"
-                self.producer.send('coinTradeData', bytes(trade_info, encoding='utf-8'))
+            self.logger.info("Received response: %s", response)
+            tweet_content = response.data['text']
+            symbol = None
+            for base_symbol in symbol_list:
+                if str(tweet_content).lower().find('#' + base_symbol) != -1:
+                    symbol = base_symbol
+                    break
+            tweet_info = f"{symbol},{tweet_content}"
+
+            if symbol:
+                self.producer.send('twitterData', bytes(tweet_info, encoding='utf-8'))
                 self.producer.flush()
         except KafkaError as e:
             self.logger.error(f"An Kafka error happened: {e}")
@@ -37,20 +56,11 @@ class TwitterProducer:
 
     def run(self):
         try:
-            with open(os.path.abspath(os.getcwd()) + "/kafka/coin_producer/coin_list.csv") as f:
-                coin_list = f.read().split('\n')
-            twitter_filter = '$' + ',$'.join(coin_list)
-            # print(twitter_filter)
-            result = self.twitter_client.filter()
-            print(result)
-            # self.logger.info("Start running coin producer...")
-            # self.ws_client.start()
-            # for idx, coin in enumerate(coin_list):
-            #     self.ws_client.trade(coin, idx + 1, self.message_handler)
-            # # self.ws_client.trade('btcusdt', 1, self.message_handler)
-            # while True:
-            #     pass
+            self.logger.info("Start running twitter producer...")
+            self.filter()
+            while True:
+                pass
         except Exception as e:
             self.logger.error(f"An error happened while streaming: {e}")
         finally:
-            self.twitter_client.disconnect()
+            self.disconnect()

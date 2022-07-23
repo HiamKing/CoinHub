@@ -5,7 +5,7 @@ from kafka.errors import KafkaError
 from tweepy import StreamingClient
 import os
 
-with open(os.path.abspath(os.getcwd()) + "/kafka/coin_producer/coin_list.csv") as f:
+with open(os.path.abspath(os.getcwd()) + "/kafka/coin_producer/symbol_list.csv") as f:
     symbol_list = f.read().split('\n')
 
 # This only need to do once

@@ -44,7 +44,7 @@ class CoinConsumer:
         self.consumer.commit()
 
     def recreate_tmpfile(self):
-        tmp_file = tempfile.TemporaryFile(mode='w+t')
+        tmp_file = tempfile.NamedTemporaryFile(mode='w+t')
         tmp_file.write('Symbol,Price,Quantity,Trade time\n')
         return tmp_file
 
@@ -59,7 +59,8 @@ class CoinConsumer:
 
                 for tp, messages in msgs_pack.items():
                     for message in messages:
-                        tmp_file.write(f"{message['value']}\n")
+                        true_msg = str(message[6])[2: len(str(message[6])) - 1]
+                        tmp_file.write(f"{true_msg}\n")
 
                 # File size > 256mb flush to hdfs
                 if tmp_file.tell() > 268435456:

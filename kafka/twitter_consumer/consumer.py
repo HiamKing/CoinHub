@@ -44,7 +44,7 @@ class TwitterConsumer:
         self.consumer.commit()
 
     def recreate_tmpfile(self):
-        tmp_file = tempfile.TemporaryFile(mode='w+t')
+        tmp_file = tempfile.NamedTemporaryFile(mode='w+t')
         tmp_file.write('Symbol,Tweet\n')
         return tmp_file
 

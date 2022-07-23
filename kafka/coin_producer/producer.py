@@ -1,4 +1,5 @@
 import logging
+from multiprocessing import Process
 from logging.handlers import RotatingFileHandler
 from kafka import KafkaProducer
 from kafka.errors import KafkaError
@@ -21,7 +22,6 @@ class CoinProducer:
         self.producer = KafkaProducer(
             bootstrap_servers=['localhost:19092', 'localhost:29092', 'localhost:39092'],
             client_id='coin_producer')
-        self.ws_client = WebsocketClient()
 
     def message_handler(self, message):
         #  Message from binnance sapi
@@ -35,19 +35,28 @@ class CoinProducer:
         except Exception as e:
             self.logger.error(f"An error happened while pushing message to Kafka: {e}")
 
-    def run(self):
+    def crawl_from_binance(self, symbol_list):
         try:
-            with open(os.path.abspath(os.getcwd()) + "/kafka/coin_producer/coin_list.csv") as f:
-                coin_list = f.read().split('\n')
-            coin_list = coin_list[:5]
+            ws_client = WebsocketClient()
             self.logger.info("Start running coin producer...")
-            self.ws_client.start()
-            for idx, coin in enumerate(coin_list):
-                self.ws_client.trade(coin, idx + 1, self.message_handler)
-            # self.ws_client.trade('btcusdt', 1, self.message_handler)
+            ws_client.start()
+            for idx, symbol in enumerate(symbol_list):
+                ws_client.trade(symbol, idx + 1, self.message_handler)
             while True:
                 pass
         except Exception as e:
             self.logger.error(f"An error happened while streaming: {e}")
         finally:
-            self.ws_client.stop()
+            ws_client.stop()
+
+    def run(self):
+        with open(os.path.abspath(os.getcwd()) + "/kafka/coin_producer/symbol_list.csv") as f:
+            symbol_list = f.read().split('\n')
+        crawling_processes = [
+            Process(target=self.crawl_from_binance, args=(symbol_list[i: i + 5], ))
+            for i in range(0, 96, 5)
+        ]
+        for process in crawling_processes:
+            process.start()
+        for process in crawling_processes:
+            process.join()

@@ -44,7 +44,7 @@ class TwitterProducer(StreamingClient):
                 if str(tweet_content).lower().find('#' + base_symbol) != -1:
                     symbol = base_symbol
                     break
-            tweet_info = f"{symbol},{tweet_content}"
+            tweet_info = f"\"{symbol}\",\"{tweet_content}\""
 
             if symbol:
                 self.producer.send('twitterData', bytes(tweet_info, encoding='utf-8'))

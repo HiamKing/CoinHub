@@ -52,11 +52,12 @@ class CoinProducer:
     def run(self):
         with open(os.path.abspath(os.getcwd()) + "/kafka/coin_producer/symbol_list.csv") as f:
             symbol_list = f.read().split('\n')
-        crawling_processes = [
-            Process(target=self.crawl_from_binance, args=(symbol_list[i: i + 5], ))
-            for i in range(0, 96, 5)
-        ]
-        for process in crawling_processes:
-            process.start()
-        for process in crawling_processes:
-            process.join()
+        self.crawl_from_binance(symbol_list[10:15])
+        # crawling_processes = [
+        #     Process(target=self.crawl_from_binance, args=(symbol_list[i: i + 5], ))
+        #     for i in range(0, 1, 5)
+        # ]
+        # for process in crawling_processes:
+        #     process.start()
+        # for process in crawling_processes:
+        #     process.join()

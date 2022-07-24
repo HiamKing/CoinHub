@@ -62,8 +62,8 @@ class TwitterConsumer:
                         true_msg = str(message[6])[2: len(str(message[6])) - 1]
                         tmp_file.write(f"{true_msg}\n")
 
-                # File size > 10mb flush to hdfs
-                if tmp_file.tell() > 10485760:
+                # File size > 1mb flush to hdfs
+                if tmp_file.tell() > 1048576:
                     self.flush_to_hdfs(tmp_file.name)
                     tmp_file.close()
                     tmp_file = self.recreate_tmpfile()

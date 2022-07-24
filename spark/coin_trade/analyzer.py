@@ -9,6 +9,10 @@ class CoinTradeDataAnalyzer():
     def __init__(self):
         self.spark = SparkSession.builder\
                                  .config("spark.app.name", "CoinTradeDataAnalyzer")\
+                                 .config("spark.jars.packages", "com.datastax.spark:spark-cassandra-connector_2.11:2.5.2")\
+                                 .config("spark.cassandra.connection.host", "172.20.0.15")\
+                                 .config("spark.cassandra.auth.username", "cassandra")\
+                                 .config("spark.cassandra.auth.password", "cassandra")\
                                  .config("spark.master", "yarn")\
                                  .config("spark.driver.memory", "2g")\
                                  .config("spark.executor.memory", "2g")\

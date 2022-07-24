@@ -45,7 +45,7 @@ class TwitterConsumer:
 
     def recreate_tmpfile(self):
         tmp_file = tempfile.NamedTemporaryFile(mode='w+t')
-        tmp_file.write('Symbol,Tweet\n')
+        tmp_file.write('Symbol,Tweet,Recorded time\n')
         return tmp_file
 
     def run(self):
@@ -60,7 +60,8 @@ class TwitterConsumer:
                 for tp, messages in msgs_pack.items():
                     for message in messages:
                         true_msg = str(message[6])[2: len(str(message[6])) - 1]
-                        tmp_file.write(f"{true_msg}\n")
+                        current_timestamp = int(round(datetime.datetime.now().timestamp()))
+                        tmp_file.write(f"{true_msg},\"{current_timestamp}\"\n")
 
                 # File size > 1mb flush to hdfs
                 if tmp_file.tell() > 1048576:

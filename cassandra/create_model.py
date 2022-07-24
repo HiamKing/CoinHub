@@ -8,11 +8,9 @@ session = cluster.connect()
 
 session.execute("USE coinhub")
 
-session.execute("DROP TABLE coin_data")
-
 session.execute("CREATE TABLE coin_data (\
    symbol text,\
-   recorded_time bigint,\
+   recorded_time timestamp,\
    frequency text,\
    high double,\
    low double,\
@@ -24,7 +22,7 @@ session.execute("CREATE TABLE coin_data (\
 
 session.execute("CREATE TABLE tweet_trending (\
    symbol text,\
-   recorded_time bigint,\
+   recorded_time timestamp,\
    frequency text,\
    count int,\
    sentiment int,\
@@ -33,7 +31,7 @@ session.execute("CREATE TABLE tweet_trending (\
 
 session.execute("CREATE TABLE stream_tweet_trending (\
    symbol text,\
-   recorded_time bigint,\
+   recorded_time timestamp,\
    frequency text,\
    count int,\
    sentiment int,\
@@ -42,7 +40,7 @@ session.execute("CREATE TABLE stream_tweet_trending (\
 
 session.execute("CREATE TABLE recent_tweet (\
    symbol text,\
-   recorded_time bigint,\
+   recorded_time timestamp,\
    content text,\
    PRIMARY KEY (symbol, recorded_time)\
 ) WITH CLUSTERING ORDER BY (recorded_time DESC)")

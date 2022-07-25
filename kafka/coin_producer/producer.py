@@ -1,5 +1,4 @@
 import logging
-from multiprocessing import Process
 from logging.handlers import RotatingFileHandler
 from kafka import KafkaProducer
 from kafka.errors import KafkaError
@@ -52,7 +51,7 @@ class CoinProducer:
     def run(self):
         with open(os.path.abspath(os.getcwd()) + "/kafka/coin_producer/symbol_list.csv") as f:
             symbol_list = f.read().split('\n')
-        self.crawl_from_binance(symbol_list[10:15])
+        self.crawl_from_binance(symbol_list[:5])
         # crawling_processes = [
         #     Process(target=self.crawl_from_binance, args=(symbol_list[i: i + 5], ))
         #     for i in range(0, 1, 5)

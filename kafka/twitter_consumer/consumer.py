@@ -60,6 +60,8 @@ class TwitterConsumer:
                 for tp, messages in msgs_pack.items():
                     for message in messages:
                         true_msg = str(message[6])[2: len(str(message[6])) - 1]
+                        # IMPORTANT: Only add timestamp here because it is too late.
+                        # It need to be put in producer
                         current_timestamp = int(round(datetime.datetime.now().timestamp()))
                         tmp_file.write(f"{true_msg},\"{current_timestamp}\"\n")
 

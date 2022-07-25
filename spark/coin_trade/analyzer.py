@@ -14,13 +14,14 @@ os.environ['YARN_CONF_DIR'] = os.path.abspath(os.getcwd()) + '/spark/conf'
 class CoinTradeDataTransformer():
     def __init__(self):
         self.spark = SparkSession.builder\
-                                 .config("spark.app.name", "CoinTradeDataAnalyzer")\
-                                 .config("spark.master", "yarn")\
-                                 .config("spark.jars.packages", "com.datastax.spark:spark-cassandra-connector_2.11:2.5.2")\
-                                 .config("spark.cassandra.connection.host", "172.20.0.15")\
-                                 .config("spark.cassandra.auth.username", "cassandra")\
-                                 .config("spark.cassandra.auth.password", "cassandra")\
-                                 .getOrCreate()
+            .config("spark.app.name", "CoinTradeDataAnalyzer")\
+            .config("spark.master", "yarn")\
+            .config("spark.jars.packages", "com.datastax.spark:spark-cassandra-connector_2.12:3.2.0")\
+            .config("spark.sql.extensions", "com.datastax.spark.connector.CassandraSparkExtensions")\
+            .config("spark.cassandra.connection.host", "172.20.0.15")\
+            .config("spark.cassandra.auth.username", "cassandra")\
+            .config("spark.cassandra.auth.password", "cassandra")\
+            .getOrCreate()
         # Options if my computer is better...
         #  .config("spark.driver.memory", "2g")\
         #  .config("spark.executor.memory", "2g")\
@@ -41,12 +42,9 @@ class CoinTradeDataTransformer():
         df = df.select(
             col('Symbol').alias('symbol'),
             col('Trade time').alias('recorded_time'),
-            lit(frequency).alias('frequency'),
-            col('high'), col('low'), col('open'), col('close'), col('volume'))
+            col('close'), lit(frequency).alias('frequency'),
+            col('high'), col('low'), col('open'), col('volume'))
 
-        # exist_df = self.spark.read.format('org.apache.spark.sql.cassandra')\
-        #     .options(table='coin_data', keyspace='coinhub')\
-        #     .load().show()
         return df
 
     def transform_data(self, files):
@@ -54,9 +52,24 @@ class CoinTradeDataTransformer():
             .option('header', True)\
             .option('inferSchema', True)\
             .load(files)
-        frequency_df = {f: self.map_time(df, f) for f in self.frequency}
-        frequency_df = {f: self.analyze_statistics(df, f) for f, df in frequency_df.items()}
-        return frequency_df
+        frequency_dfs = {f: self.map_time(df, f) for f in self.frequency}
+        frequency_dfs = {f: self.analyze_statistics(df, f) for f, df in frequency_dfs.items()}
+        # This only work because I'm in a hurry. If database to big it will explode
+        result_df = self.spark.read.format('org.apache.spark.sql.cassandra')\
+            .options(table='coin_data', keyspace='coinhub')\
+            .load()
+
+        for frequency_df in frequency_dfs.values():
+            result_df = result_df.union(frequency_df)\
+                .groupBy('symbol', 'recorded_time', 'frequency')\
+                .agg(max('high').alias('high'),
+                     first('open').alias('open'),
+                     last('close').alias('close'),
+                     min('low').alias('low'),
+                     sum('volume').alias('volume'))
+            # Cassandra requires cols in alphabet order
+            result_df = result_df.select(['symbol', 'recorded_time', *sorted(result_df.columns[2:])])
+        return result_df
 
 
 class CoinTradeDataAnalyzer():
@@ -78,11 +91,10 @@ class CoinTradeDataAnalyzer():
     def transform_and_save_data(self, files):
         self.logger.info('Start transforming data')
         frequency_df = self.transformer.transform_data(files)
-        for df in frequency_df.values():
-            df.write.format('org.apache.spark.sql.cassandra')\
-              .mode('append')\
-              .options(table='coin_data', keyspace='coinhub')\
-              .save()
+        frequency_df.write.format('org.apache.spark.sql.cassandra')\
+                          .mode('append')\
+                          .options(table='coin_data', keyspace='coinhub')\
+                          .save()
 
     def get_hdfs_new_files(self, date_to_get, latest_file_time=None):
         self.logger.info('Get files from hdfs')
@@ -115,7 +127,7 @@ class CoinTradeDataAnalyzer():
 
             try:
                 # Analyze if any remaining files in yesterday
-                if today - self.current_date < 86400:
+                if today - self.current_date < 86400 and self.latest_file_time:
                     self.analyze_data(
                         self.current_date - 86400, self.latest_file_time)
                 self.analyze_data(self.current_date, self.latest_file_time)

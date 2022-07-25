@@ -1,9 +1,9 @@
 import sys
-from analyzer import CoinTradeDataAnalyzer
+from analyzer import TwitterDataAnalyzer
 
 
 def run_service(start_date, start_file):
-    analyzer = CoinTradeDataAnalyzer(start_date, start_file)
+    analyzer = TwitterDataAnalyzer(start_date, start_file)
     analyzer.run()
 
 

@@ -5,8 +5,8 @@ import "./styles.css";
 class Home extends React.Component {
     render() {
         return (
-            <div>
-                asd
+            <div className="home-page">
+                <div className="home-text">Welcome to Coin Hub</div>
             </div>
         );
     }

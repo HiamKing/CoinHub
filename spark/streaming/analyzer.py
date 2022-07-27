@@ -47,6 +47,7 @@ negative = [
     "bears",
     "bear",
     "bearish",
+    "drop",
     "volatile",
     "short",
     "sell",
@@ -76,10 +77,12 @@ class StreamTwitterDataTransformer():
 
     def analyze_statistics(self, df, frequency):
         def get_sentiment(tweet_content):
-            if tweet_content in positive:
-                return 1
-            elif tweet_content in negative:
-                return -1
+            for word in positive:
+                if tweet_content.find(word) != -1:
+                    return 1
+            for word in negative:
+                if tweet_content.find(word) != -1:
+                    return -1
             return 0
 
         get_sentiment_udf = udf(lambda content: get_sentiment(content), IntegerType())
@@ -127,6 +130,7 @@ class StreamTwitterDataAnalyzer():
             .config("spark.jars.packages", EXTRA_PACKAGES)\
             .config("spark.sql.extensions", "com.datastax.spark.connector.CassandraSparkExtensions")\
             .config("spark.cassandra.connection.host", "172.20.0.15")\
+            .config("spark.driver.host", "127.0.0.1")\
             .config("spark.cassandra.auth.username", "cassandra")\
             .config("spark.cassandra.auth.password", "cassandra")\
             .getOrCreate()
@@ -140,10 +144,10 @@ class StreamTwitterDataAnalyzer():
     def transform_and_save_data(self, df):
         self.logger.info('Start transforming data')
         frequency_df = self.transformer.transform_data(df)
-        # frequency_df.write.format('org.apache.spark.sql.cassandra')\
-        #                   .mode('append')\
-        #                   .options(table='stream_tweet_trending', keyspace='coinhub')\
-        #                   .save()
+        frequency_df.write.format('org.apache.spark.sql.cassandra')\
+                          .mode('append')\
+                          .options(table='stream_tweet_trending', keyspace='coinhub')\
+                          .save()
 
     def analyze_data(self, df, batch_id):
         self.logger.info('Start analyzing at '

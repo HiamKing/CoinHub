@@ -45,6 +45,7 @@ negative = [
     "bears",
     "bear",
     "bearish",
+    "drop",
     "volatile",
     "short",
     "sell",
@@ -69,10 +70,11 @@ class TwitterDataTransformer():
         # currently mismatching python ver if using udf
         self.spark = SparkSession.builder\
             .config("spark.app.name", "TwitterDataAnalyzer")\
-            .config("spark.master", "local")\
+            .config("spark.master", "local[*]")\
             .config("spark.jars.packages", "com.datastax.spark:spark-cassandra-connector_2.12:3.2.0")\
             .config("spark.sql.extensions", "com.datastax.spark.connector.CassandraSparkExtensions")\
             .config("spark.cassandra.connection.host", "172.20.0.15")\
+            .config("spark.driver.host", "127.0.0.1")\
             .config("spark.cassandra.auth.username", "cassandra")\
             .config("spark.cassandra.auth.password", "cassandra")\
             .getOrCreate()
@@ -88,10 +90,12 @@ class TwitterDataTransformer():
 
     def analyze_statistics(self, df, frequency):
         def get_sentiment(tweet_content):
-            if tweet_content in positive:
-                return 1
-            elif tweet_content in negative:
-                return -1
+            for word in positive:
+                if tweet_content.find(word) != -1:
+                    return 1
+            for word in negative:
+                if tweet_content.find(word) != -1:
+                    return -1
             return 0
 
         get_sentiment_udf = udf(lambda content: get_sentiment(content), IntegerType())
@@ -113,7 +117,7 @@ class TwitterDataTransformer():
             .load(files)
         frequency_dfs = {f: self.map_time(df, f) for f in self.frequency}
         frequency_dfs = {f: self.analyze_statistics(df, f) for f, df in frequency_dfs.items()}
-        # This only work because I'm in a hurry. If database to big it will explode
+        # This only work because I'm in a hurry. If database too big it will explode
         result_df = self.spark.read.format('org.apache.spark.sql.cassandra')\
             .options(table='tweet_trending', keyspace='coinhub')\
             .load()

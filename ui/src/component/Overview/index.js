@@ -25,8 +25,8 @@ class Overview extends React.Component {
         return (
             <div className="tweet-table">
                 <div className="tweet-group">
-                    <div className="tweet-value">
-                        <b>Latest tweets on Twitter</b>
+                    <div className="tweet-value text-center">
+                        <b>Top 10 latest tweets on Twitter</b>
                     </div>
                 </div>
                 {store.latestTweets.map((tweet) => (
@@ -62,24 +62,32 @@ class Overview extends React.Component {
     render() {
         const store = overviewStore;
         const symbolChartData = toJS(store.curTrendingSymbols);
-        
-        if(store.isLoading) return <Default />
+
+        if (store.isLoading) return <Default />;
 
         return (
             <div className="overview">
                 <div className="chart-view">
+                    <div className="chart-title">
+                        Top trending symbols in 10 minutes
+                    </div>
                     <BarChart
                         width={600}
                         layout="vertical"
                         height={600}
-                        margin={{ top: 40, right: 40, left: 40, bottom: 40 }}
+                        margin={{ top: 40, right: 40, left: 50, bottom: 40 }}
                         data={symbolChartData}
                     >
                         <CartesianGrid strokeDasharray="3 3" />
                         <XAxis type="number" />
-                        <YAxis type="category" dataKey="symbol" />
+                        <YAxis type="category" dataKey="symbol" tick={{fontSize: 14}}/>
                         <Tooltip content={this.customTooltip} />
-                        <Bar dataKey="tweet_count" maxBarSize={30} fill="#5C5CFF">
+                        <Bar
+                            dataKey="tweet_count"
+                            label={{ fontSize: 5 }}
+                            maxBarSize={30}
+                            fill="#5C5CFF"
+                        >
                             {this.getSymbolChartCell()}
                         </Bar>
                     </BarChart>

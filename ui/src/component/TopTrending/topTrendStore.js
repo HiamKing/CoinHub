@@ -2,11 +2,18 @@ import { action, makeObservable, observable } from "mobx";
 import _ from "lodash";
 import APIS from "../../services/common";
 
-class OverviewStore {
+class TopTrendStore {
     curTrendingSymbols = [];
     symbolChartCellColor = [];
     latestTweets = [];
     isLoading = false;
+    symbolChartOptions = {
+        title: "Top 10 Symbols has most tweets on Twitter in last 10 minutes",
+        width: 600,
+        height: 800,
+        bar: { groupWidth: "50%" },
+        legend: { position: "none" },
+    };
 
     constructor() {
         makeObservable(this, {
@@ -35,4 +42,4 @@ class OverviewStore {
     }
 }
 
-export default new OverviewStore();
+export default new TopTrendStore();

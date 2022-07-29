@@ -3,7 +3,25 @@
 }
 
 .tweet-table {
-    width: 70%;
+    width: 50%;
+    margin-left: 1rem;
+}
+
+.custom-tooltip {
+    background-color: #fff;
+    padding: 0.5rem 0.5rem;
+}
+
+.tooltip-label {
+    margin-bottom: 0.5rem;
+}
+
+.tooltip-value {
+    margin-bottom: 0.5rem;
+}
+
+.chart-view {
+    background: #fff;
 }
 
 .tweet-group {

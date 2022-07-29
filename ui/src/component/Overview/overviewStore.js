@@ -4,7 +4,9 @@ import APIS from "../../services/common";
 
 class OverviewStore {
     curTrendingSymbols = [];
+    symbolChartCellColor = [];
     latestTweets = [];
+    isLoading = false;
     symbolChartOptions = {
         title: "Top 10 Symbols has most tweets on Twitter in last 10 minutes",
         width: 600,
@@ -16,32 +18,26 @@ class OverviewStore {
     constructor() {
         makeObservable(this, {
             curTrendingSymbols: observable,
+            symbolChartCellColor: observable,
             latestTweets: observable,
+            isLoading: observable,
             fetchOverviewInfo: action,
         });
     }
 
     fetchOverviewInfo() {
-        let trendingSymbols = [[
-            "Symbol",
-            "Tweet Count",
-            { role: "style" },
-            {
-                sourceColumn: 0,
-                role: "annotation",
-                type: "string",
-                calc: "stringify",
-            },
-        ]];
+        this.isLoading = true;
         APIS.getOverviewInfo().then((res) => {
-            trendingSymbols = trendingSymbols.concat(_.map(res.data.symbols, (symbol) => [
-                symbol.symbol.toUpperCase(),
-                symbol.tweet_count,
-                symbol.color,
-                null
-            ]));
-            this.curTrendingSymbols = trendingSymbols
+            this.curTrendingSymbols = _.map(res.data.symbols, (symbol) => ({
+                "symbol": symbol.symbol.toUpperCase(),
+                "tweet_count": symbol.tweet_count,
+            }));
+            this.symbolChartCellColor = _.map(
+                res.data.symbols,
+                (symbol) => symbol.color
+            );
             this.latestTweets = res.data.tweets;
+            this.isLoading = false;
         });
     }
 }

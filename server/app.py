@@ -25,11 +25,11 @@ def get_overview():
             {'recorded_time': tweet.recorded_time,
              'content': tweet.content})
     for symbol in symbols:
-        color = "#0000D1"  # blue
+        color = "#5C5CFF"  # blue
         if symbol.total_sentiment > 0:
-            color = "#00D100"  # green
+            color = "#5CFF5C"  # green
         elif symbol.total_sentiment < 0:
-            color = "#D10000"  # red
+            color = "#FF5C5C"  # red
         result['symbols'].append(
             {'symbol': symbol.symbol,
              'tweet_count': symbol.tweet_count,

@@ -10,6 +10,8 @@
 .custom-tooltip {
     background-color: #fff;
     padding: 0.5rem 0.5rem;
+    border: 1px solid #000;
+    border-radius: 4px;
 }
 
 .tooltip-label {

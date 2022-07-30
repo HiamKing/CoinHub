@@ -8,6 +8,7 @@ from pyspark.sql.types import IntegerType
 from hdfs import InsecureClient
 from logging.handlers import RotatingFileHandler
 
+# Add your own conf dir
 os.environ['HADOOP_CONF_DIR'] = os.path.abspath(os.getcwd()) + '/spark/conf'
 os.environ['YARN_CONF_DIR'] = os.path.abspath(os.getcwd()) + '/spark/conf'
 

@@ -3,12 +3,13 @@ import logging
 from datetime import datetime
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import (
-    date_trunc, from_unixtime, col,
+    date_trunc, col,
     udf, count, sum, lit, split, decode, length, translate
 )
 from pyspark.sql.types import IntegerType
 from logging.handlers import RotatingFileHandler
 
+# Add your own conf dir
 os.environ['HADOOP_CONF_DIR'] = os.path.abspath(os.getcwd()) + '/spark/conf'
 os.environ['YARN_CONF_DIR'] = os.path.abspath(os.getcwd()) + '/spark/conf'
 EXTRA_PACKAGES = "com.datastax.spark:spark-cassandra-connector_2.12:3.2.0,org.apache.spark:spark-sql-kafka-0-10_2.12:3.2.0"

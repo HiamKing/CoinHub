@@ -29,7 +29,7 @@ class TweetSentiment extends React.Component {
                     </button>
                 </div>
                 <div className="tweet-sentiment-title">
-                    Number of tweets/sentiment for {store.symbol}
+                    Number of tweets/Sentiment for {store.symbol}
                 </div>
                 <div className="frequency-view">
                     <div>Zoom:</div>

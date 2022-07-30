@@ -75,5 +75,24 @@ def get_trending_symbols():
     return result
 
 
+@app.route('/get_symbol_tweets/<symbol>', methods=['GET'])
+def get_symbol_tweets(symbol):
+    frequency = request.args.get('frequency')
+    if not frequency:
+        abort(400, 'You haven\'t entered frequency')
+
+    # In real scenario this should take from tweet_trending table
+    tweets = session.execute(
+        f"select recorded_time, count, sentiment from stream_tweet_trending where symbol = '{symbol.lower()}' and frequency = '{frequency}' allow filtering")
+    result = {'tweets': []}
+    for tweet in tweets:
+        result['tweets'].append(
+            {'recorded_time': tweet.recorded_time,
+             'tweet_count': tweet.count,
+             'sentiment': tweet.sentiment})
+    result['tweets'] = sorted(result['tweets'], key=lambda t: t['recorded_time'])
+    return result
+
+
 if __name__ == "__main__":
     app.run(debug=True)

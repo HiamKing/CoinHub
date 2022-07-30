@@ -47,7 +47,7 @@ class TopTrending extends React.Component {
         if (store.isLoading) return <Default />;
 
         return (
-            <div className="overview">
+            <div className="top-trending-view">
                 <div className="chart-view">
                     <div className="chart-title">Top trending symbols</div>
                     <div className="time-picker">

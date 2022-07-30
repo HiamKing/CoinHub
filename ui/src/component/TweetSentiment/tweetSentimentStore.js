@@ -37,7 +37,6 @@ class TweetSentimentStore {
         this.isLoading = true;
         APIS.getSymbolTweets(this.symbol, { frequency: this.frequency }).then(
             (res) => {
-                // console.log(new Date(res.data.tweets[0].recorded_time).())
                 this.symbolTweets = _.map(res.data.tweets, (symbol) => ({
                     recorded_time: symbol.recorded_time,
                     sentiment: symbol.sentiment,

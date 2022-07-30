@@ -1,9 +1,9 @@
 import React from "react";
 import { observer } from "mobx-react";
 import { Default } from "react-awesome-spinners";
-import "./styles.css";
 import tweetSentimentStore from "./tweetSentimentStore";
 import TweetSentimentChart from "./tweetSentimentChart";
+import "./styles.css";
 
 class TweetSentiment extends React.Component {
     render() {

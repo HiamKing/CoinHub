@@ -55,7 +55,7 @@ class TweetSentimentChart extends React.Component {
                         margin={{
                             top: 40,
                             right: 40,
-                            left: 30,
+                            left: 10,
                             bottom: 40,
                         }}
                         data={this.props.data}

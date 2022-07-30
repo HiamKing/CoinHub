@@ -17,7 +17,7 @@ class TweetSentiment extends React.Component {
                         type="text"
                         id="symbol-input"
                         name="symbol-input"
-                        placeholder="BTCUSDT"
+                        placeholder="Sample: BTCUSDT"
                         value={store.symbol}
                         onChange={(e) => store.setSymbol(e.target.value)}
                     />

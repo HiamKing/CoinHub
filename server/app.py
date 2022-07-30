@@ -94,5 +94,39 @@ def get_symbol_tweets(symbol):
     return result
 
 
+@app.route('/get_symbol_correlation/<symbol>', methods=['GET'])
+def get_symbol_correlation(symbol):
+    frequency = request.args.get('frequency')
+    if not frequency:
+        abort(400, 'You haven\'t entered frequency')
+
+    tweets = session.execute(
+        f"select recorded_time, count from stream_tweet_trending where symbol = '{symbol.lower()}' and frequency = '{frequency}' allow filtering")
+    symbols = session.execute(
+        f"select recorded_time, high, low, open, close, volume from coin_data where symbol = '{symbol}' and frequency = '{frequency}' allow filtering")
+
+    tweet_over_time = {}
+    result = {'symbol_correlation': []}
+    for tweet in tweets:
+        tweet_over_time[tweet.recorded_time.strftime('%Y-%m-%d %H:%M:%S.%f%z')] = tweet.count
+
+    for symbol_data in symbols:
+        tweet_count = 0
+        if symbol_data.recorded_time.strftime('%Y-%m-%d %H:%M:%S.%f%z') in tweet_over_time:
+            tweet_count = tweet_over_time[symbol_data.recorded_time.strftime('%Y-%m-%d %H:%M:%S.%f%z')]
+        result['symbol_correlation'].append({
+            'recorded_time': symbol_data.recorded_time,
+            'high': symbol_data.high,
+            'low': symbol_data.low,
+            'open': symbol_data.open,
+            'close': symbol_data.close,
+            'volume': symbol_data.volume,
+            'tweet_count': tweet_count,
+        })
+    result['symbol_correlation'] = sorted(result['symbol_correlation'], key=lambda t: t['recorded_time'])
+
+    return result
+
+
 if __name__ == "__main__":
     app.run(debug=True)

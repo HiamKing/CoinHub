@@ -8,9 +8,8 @@ const APIS = {
         axios.get(`${API_ROOT}/get_trending_symbols`, { params: args }),
     getSymbolTweets: (symbol, args) =>
         axios.get(`${API_ROOT}/get_symbol_tweets/${symbol}`, { params: args }),
-    getAddress: () => axios.get(`${API_ROOT}/address`),
-    getAddressDetail: (address) => axios.get(`${API_ROOT}/address/${address}`),
-    sendTransaction: (data) => axios.post(`${API_ROOT}/transaction`, data),
+    getSymbolCorrelation: (symbol, args) =>
+        axios.get(`${API_ROOT}/get_symbol_correlation/${symbol}`, { params: args }),
 };
 
 export default APIS;

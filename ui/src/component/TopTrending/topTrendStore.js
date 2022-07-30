@@ -3,40 +3,60 @@ import _ from "lodash";
 import APIS from "../../services/common";
 
 class TopTrendStore {
-    curTrendingSymbols = [];
-    symbolChartCellColor = [];
-    latestTweets = [];
+    startTimeTrending = new Date();
+    endTimeTrending = new Date();
     isLoading = false;
-    symbolChartOptions = {
-        title: "Top 10 Symbols has most tweets on Twitter in last 10 minutes",
-        width: 600,
-        height: 800,
-        bar: { groupWidth: "50%" },
-        legend: { position: "none" },
-    };
+    trendingSymbols = [];
+    symbolChartCellColor = [];
 
     constructor() {
         makeObservable(this, {
-            curTrendingSymbols: observable,
-            symbolChartCellColor: observable,
-            latestTweets: observable,
+            startTimeTrending: observable,
+            endTimeTrending: observable,
             isLoading: observable,
-            fetchOverviewInfo: action,
+            trendingSymbols: observable,
+            symbolChartCellColor: observable,
+            setStartTimeTrending: action,
+            setEndTimeTrending: action,
+            fetchTrendingSymbols: action,
         });
     }
 
-    fetchOverviewInfo() {
+    setStartTimeTrending(time) {
+        this.startTimeTrending = time;
+    }
+
+    setEndTimeTrending(time) {
+        this.endTimeTrending = time;
+    }
+
+    fetchTrendingSymbols() {
+        if (this.startTimeTrending === null){
+            window.alert("You haven't entered input");
+            return;
+        }
+        if (this.endTimeTrending === null) {
+            window.alert("You haven't entered out");
+            return;
+        }
+        if (this.endTimeTrending < this.startTimeTrending) {
+            window.alert("End time need to be not smaller than start time");
+            return;
+        }
+
         this.isLoading = true;
-        APIS.getOverviewInfo().then((res) => {
-            this.curTrendingSymbols = _.map(res.data.symbols, (symbol) => ({
-                "symbol": symbol.symbol.toUpperCase(),
-                "tweet_count": symbol.tweet_count,
+        APIS.getTrendingSymbols({
+            startTime: this.startTimeTrending,
+            endTime: this.endTimeTrending,
+        }).then((res) => {
+            this.trendingSymbols = _.map(res.data.symbols, (symbol) => ({
+                symbol: symbol.symbol.toUpperCase(),
+                tweet_count: symbol.tweet_count,
             }));
             this.symbolChartCellColor = _.map(
                 res.data.symbols,
                 (symbol) => symbol.color
             );
-            this.latestTweets = res.data.tweets;
             this.isLoading = false;
         });
     }

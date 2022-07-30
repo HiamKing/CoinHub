@@ -80,11 +80,14 @@ class Overview extends React.Component {
                     >
                         <CartesianGrid strokeDasharray="3 3" />
                         <XAxis type="number" />
-                        <YAxis type="category" dataKey="symbol" tick={{fontSize: 14}}/>
+                        <YAxis
+                            type="category"
+                            dataKey="symbol"
+                            tick={{ fontSize: 14 }}
+                        />
                         <Tooltip content={this.customTooltip} />
                         <Bar
                             dataKey="tweet_count"
-                            label={{ fontSize: 5 }}
                             maxBarSize={30}
                             fill="#5C5CFF"
                         >

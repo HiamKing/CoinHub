@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta
-from flask import Flask, request
+from flask import Flask, abort, request
 from flask_cors import CORS
 from cassandra.cluster import Cluster
 
@@ -37,6 +37,40 @@ def get_overview():
 
     result['tweets'] = sorted(result['tweets'], key=lambda t: t['recorded_time'], reverse=True)[:tweet_limit]
     result['symbols'] = sorted(result['symbols'], key=lambda t: t['tweet_count'], reverse=True)[:symbol_limit]
+
+    return result
+
+
+@app.route('/get_trending_symbols', methods=['GET'])
+def get_trending_symbols():
+    start_time = request.args.get('startTime')
+    end_time = request.args.get('endTime')
+    if not start_time or not end_time:
+        abort(400, 'You haven\'t entered enough start time and end time')
+
+    start_time = datetime\
+        .strptime(start_time, '%Y-%m-%dT%H:%M:%S.%f%z')\
+        .strftime('%Y-%m-%d %H:%M:%S.%f%z')
+    end_time = datetime\
+        .strptime(end_time, '%Y-%m-%dT%H:%M:%S.%f%z')\
+        .strftime('%Y-%m-%d %H:%M:%S.%f%z')
+    # In real scenario this should take from tweet_trending table
+    symbols = session.execute(
+        f"select symbol, sum(count) as tweet_count, sum(sentiment) as total_sentiment from stream_tweet_trending where recorded_time >= '{start_time}' and recorded_time <= '{end_time}' group by symbol allow filtering")
+
+    result = {'symbols': []}
+    for symbol in symbols:
+        color = "#5C5CFF"  # blue
+        if symbol.total_sentiment > 0:
+            color = "#5CFF5C"  # green
+        elif symbol.total_sentiment < 0:
+            color = "#FF5C5C"  # red
+        result['symbols'].append(
+            {'symbol': symbol.symbol,
+             'tweet_count': symbol.tweet_count,
+             'color': color})
+
+    result['symbols'] = sorted(result['symbols'], key=lambda t: t['tweet_count'], reverse=True)
 
     return result
 

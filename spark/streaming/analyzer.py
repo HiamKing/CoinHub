@@ -172,7 +172,6 @@ class StreamTwitterDataAnalyzer():
         df = self.spark.readStream.format('kafka')\
             .option('kafka.bootstrap.servers', 'localhost:19092,localhost:29092,localhost:39092')\
             .option('subscribe', 'twitterData')\
-            .option('startingOffsets', 'earliest')\
             .load()
         df.selectExpr("CAST(key AS STRING)", "CAST(value AS STRING)")
         df.writeStream.foreachBatch(self.analyze_data).start().awaitTermination()

@@ -173,5 +173,6 @@ class StreamTwitterDataAnalyzer():
             .option('kafka.bootstrap.servers', 'localhost:19092,localhost:29092,localhost:39092')\
             .option('subscribe', 'twitterData')\
             .load()
+        # .option('startingOffsets', 'earliest')\ # Using this when u need to write data from the beginning
         df.selectExpr("CAST(key AS STRING)", "CAST(value AS STRING)")
         df.writeStream.foreachBatch(self.analyze_data).start().awaitTermination()

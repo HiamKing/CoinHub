@@ -17,7 +17,7 @@ def get_overview():
     start_time = (datetime.utcnow() - timedelta(minutes=30)).strftime('%Y-%m-%d %H:%M:%S.%f%z')
     tweets = session.execute('select recorded_time, content from recent_tweet')
     symbols = session.execute(
-        f"select symbol, sum(count) as tweet_count, sum(sentiment) as total_sentiment from stream_tweet_trending where recorded_time >= '{start_time}' group by symbol allow filtering")
+        f"select symbol, sum(count) as tweet_count, sum(sentiment) as total_sentiment from stream_tweet_trending where recorded_time >= '{start_time}' and frequency = 'minute' group by symbol allow filtering")
 
     result = {'symbols': [], 'tweets': []}
     for tweet in tweets:
@@ -56,7 +56,7 @@ def get_trending_symbols():
         .strftime('%Y-%m-%d %H:%M:%S.%f%z')
     # In real scenario this should take from tweet_trending table
     symbols = session.execute(
-        f"select symbol, sum(count) as tweet_count, sum(sentiment) as total_sentiment from stream_tweet_trending where recorded_time >= '{start_time}' and recorded_time <= '{end_time}' group by symbol allow filtering")
+        f"select symbol, sum(count) as tweet_count, sum(sentiment) as total_sentiment from stream_tweet_trending where recorded_time >= '{start_time}' and recorded_time <= '{end_time}' and frequency = 'minute' group by symbol allow filtering")
 
     result = {'symbols': []}
     for symbol in symbols:
